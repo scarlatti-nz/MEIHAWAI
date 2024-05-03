@@ -1,0 +1,50 @@
+parameterSets:
+- nprice: 100
+  pprice: 500
+  ch4price: 0
+- nprice: 100
+  pprice: 500
+  ch4price: 20
+- nprice: 100
+  pprice: 500
+  ch4price: 40
+- nprice: 100
+  pprice: 1000
+  ch4price: 0
+- nprice: 100
+  pprice: 1000
+  ch4price: 20
+- nprice: 100
+  pprice: 1000
+  ch4price: 40
+- nprice: 50
+  pprice: 500
+  ch4price: 0
+- nprice: 50
+  pprice: 500
+  ch4price: 20
+- nprice: 50
+  pprice: 500
+  ch4price: 40
+- nprice: 50
+  pprice: 1000
+  ch4price: 0
+- nprice: 50
+  pprice: 2000
+  ch4price: 0
+
+SedimentPrice: 0.0
+N2OPrice: 0.0
+CO2Price: 70.0
+extensionScale: 0.0
+sedimentModel: "default"
+enableBolus: "false"
+disableLUC: "false"
+maxParcelsPerCell: 100
+carbonGrowthPath: "parabolic"
+
+
+dataDir: "data/"
+# dataDir: "../nesi_downloads/sample080424/"
+outputDir: "outputs/"
+verbosePlots: False

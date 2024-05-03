@@ -1,0 +1,16 @@
+Crop,Capability x transform,Capital cost,Fixed cost,Breakeven capability,Median capability,Industry-leading capability,Ratio of industry leading profit to median profit
+apple,-0.5,150000,33000,0.7,0.9,1.4,1.1
+avocado,-0.5,70000,23000,0.7,0.9,1.4,1.1
+blueberry-covered,-0.5,400000,98000,0.7,0.9,1.4,1.1
+cherry,-0.5,500000,34000,0.7,0.9,1.4,1.1
+kiwifruit-gold,-0.5,1010000,43000,0.8,0.9,1.4,1.1
+kiwifruit-green,-0.5,220000,44000,0.7,0.9,1.4,1.1
+maize-grain,0,0,1000,0.3,0.6,1.4,1.2
+onions,0,0,14000,0.5,0.7,1.4,1.2
+peas-vining,0,0,1000,0.3,0.6,1.4,1.2
+potatoes,0,0,12000,0.5,0.7,1.4,1.2
+wheat,0,0,2000,0.3,0.6,1.4,1.2
+wine-grape-pinot-noir,-0.5,69000,13000,0.6,0.9,1.4,1.1
+wine-grape-sauvignon-blanc,-0.5,69000,13000,0.6,0.9,1.4,1.1
+dairy,0,20000,4000,0.3,0.55,1.4,1.8
+sheep-and-beef,0,0,50,0.3,0.55,1.4,2.5

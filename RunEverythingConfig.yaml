@@ -1,0 +1,53 @@
+# Default model parameter values
+
+# Price per kg CO2e for each gas, CO2 applies only to forest carbon sequestration
+N2OPriceDefault: 0.0
+CH4PriceDefault: 0.0
+CO2PriceDefault: 70.0
+# Price per kg (N or P) or ton (Sediment) local excess load
+NPriceDefault: 0.0
+PPriceDefault: 0.0
+SedimentPriceDefault: 0.0
+# Scale of additional extension funding, 1.0 = $200M/yr
+extensionScaleDefault: 0.0
+# Sediment model to use - "default" assumes land cover factor of 0.466 for trees relative to pasture, "alt" assumes 0.1
+sedimentModelDefault: "default"
+# Whether to enable methane-reducing bolus as an option for pastoral land uses. MAY NOT WORK.
+enableBolusDefault: "false"
+# Whether to disable land use change
+disableLUCDefault: "false"
+# Path of carbon growth function to use - "parabolic" or "exponential"
+carbonGrowthPathDefault: "parabolic"
+
+# Admin, data folders, etc
+
+# Maximum number of land parcels to generate per cell. 8000 is a good default for HPC, can use lower values for quick local runs. 
+maxParcelsPerCell: 100
+# Directory containing the input data for the model
+dataDir: "data/"
+# Number of cells to run the model on, 783 for full NZ (higher values will be treated as 783). Chooses pseudorandomly from the grid cells in dataDir if less than 783.
+nCells: 1
+# Directory to save model outputs
+outputDir: "outputs/"
+# Directory to save figures
+figureDir: "figures/"
+
+
+
+# For each run, specify an ID and the parameter values to use. You only need to specify a parameter value if you are chaning it from the default.
+runs:
+  - runID: "status_quo"
+    
+  - runID: "no_carbon_price"
+    CO2Price: 0.0
+    
+  - runID: "policy_optimised"
+    CH4Price: 30.0
+    CO2Price: 70.0
+    NPrice: 90.0
+    extensionScale: 0.5
+    
+  - runID: "status_quo_plus_extension"
+    extensionScale: 1.0
+
+

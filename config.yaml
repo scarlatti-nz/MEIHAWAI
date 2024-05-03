@@ -1,0 +1,17 @@
+N2OPrice: 0.0
+CH4Price: 0.0
+CO2Price: 70.0
+NPrice: 0.0
+PPrice: 0.0
+SedimentPrice: 0.0
+extensionScale: 0.0
+sedimentModel: "default"
+enableBolus: "false"
+disableLUC: "false"
+initialiseOnly: "false"
+maxParcelsPerCell: 5000
+carbonGrowthPath: "parabolic"
+
+dataDir: "data/"
+outputDir: "outputs/"
+verbosePlots: False

@@ -1,0 +1,104 @@
+import os
+import json
+import datetime
+import pandas as pd
+import random 
+
+configfile: "RunEverythingConfig.yaml"
+
+
+output_dir = config['outputDir']
+data_dir = config['dataDir']
+all_cells = os.listdir(data_dir)
+figure_dir = config['figureDir']
+
+census = pd.read_csv('utils/summary.csv')
+grid_cells = census[(census['grid'].isin(all_cells))]['grid'].tolist()
+n_cells = min(len(grid_cells),config.get('nCells',20))
+grid_cells = grid_cells[:n_cells]
+verbosePlots = "--verbose" if config.get('verbosePlots',False) else ""
+
+
+run_ids = expand(
+    "{run[runID]}",
+    run=config['runs'])
+
+
+
+print("Running on " + str(len(grid_cells)) + " cells")
+
+rule all:
+    input:
+        figure_dir + "results_fig_5.png"
+    shell:
+        "python utils/cleanup.py {output_dir} {run_ids}"
+
+rule finalPlots:
+    input:
+        expand(
+            output_dir + "{run_id}/plots/initial_land_use.tif",
+            run_id = run_ids
+        )
+    output:
+        figure_dir + "results_fig_5.png",
+    shell:  
+        "python utils/results_plots.py {output_dir} {figure_dir}"
+
+rule intermediatePlots:
+    input:
+        output_dir + "{run_id}/agents_25.arrow",
+    output:
+        output_dir + "{run_id}/plots/initial_land_use.tif",
+    shell:  
+        "python utils/generate_plots.py --run {output_dir}{wildcards.run_id}/ {verbosePlots}"
+
+
+rule join:
+    input:
+        expand(
+            output_dir +  "{run_id}/{grid_cell}/complete.txt",
+            grid_cell = grid_cells,
+            run_id = run_ids
+        ),
+    output:
+        output_dir + "{run_id}/agents_25.arrow",
+    shell:
+        "python utils/aggregate_data.py {output_dir}{wildcards.run_id}/"
+
+
+rule main:
+    input:
+        data_dir + "{grid_cell}/hectares_with_stuff_final.gpkg",
+    output:
+        output_folder = output_dir + "{run_id}/{grid_cell}/complete.txt",
+    params:
+        co2_price = lambda wildcards: next((d.get('CO2Price', config['CO2PriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        n_price = lambda wildcards: next((d.get('NPrice', config['NPriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        p_price = lambda wildcards: next((d.get('PPrice', config['PPriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        ch4_price = lambda wildcards: next((d.get('CH4Price', config['CH4PriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        n2o_price = lambda wildcards: next((d.get('N2OPrice', config['N2OPriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        sed_price = lambda wildcards: next((d.get('SedimentPrice', config['SedimentPriceDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        extension_scale = lambda wildcards: next((d.get('extensionScale', config['extensionScaleDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        sediment_model = lambda wildcards: next((d.get('sedimentModel', config['sedimentModelDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        enable_bolus = lambda wildcards: next((d.get('enableBolus', config['enableBolusDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        disable_LUC = lambda wildcards: next((d.get('disableLUC', config['disableLUCDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+        carbon_growth_path = lambda wildcards: next((d.get('carbonGrowthPath', config['carbonGrowthPathDefault']) for d in config['runs'] if d['runID'] == wildcards.run_id)),
+    shell:
+        '''
+        julia --project=\".\" main.jl \
+        --max-parcels {config[maxParcelsPerCell]} \
+        --geodata {data_dir}{wildcards.grid_cell}/hectares_with_stuff_final.gpkg \
+        --output-dir {output_dir}{wildcards.run_id}/{wildcards.grid_cell}/ \
+        --log-file {output_dir}{wildcards.run_id}/{wildcards.grid_cell}/error.log \
+        --extension-scale {params.extension_scale} \
+        --NPrice {params.n_price} \
+        --PPrice {params.p_price} \
+        --SedimentPrice {params.sed_price} \
+        --N2OPrice {params.n2o_price} \
+        --CH4Price {params.ch4_price} \
+        --CO2Price {params.co2_price} \
+        --sediment-model {params.sediment_model} \
+        --enable-bolus {params.enable_bolus} \
+        --disable-land-use-change {params.disable_LUC} \
+        --carbon-growth-path {params.carbon_growth_path}
+        '''

@@ -1,0 +1,18 @@
+__default__:
+    account: accountname
+    time: 02:00:00
+    ntasks: 1
+    cpus-per-task: 1
+    mem: 8000m
+    partition: bigmem
+    hint: nomultithread
+    output: logs/%x-%j.out
+    error: logs/%x-%j.err
+
+join:
+    mem: 64g
+    partition: hugemem
+
+plots:
+    mem: 256g
+    partition: hugemem

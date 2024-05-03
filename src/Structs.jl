@@ -1,0 +1,132 @@
+module Structs
+export Agent, LandParcel, LandUse, ExternalResource, Catchment
+mutable struct LandUse
+    name::String
+    category::String
+    fixed_costs::Float64
+    years_to_yield::Int64
+    crop_lifetime::Int64
+    revenue_adjustment::Float64
+    intensity_variable_cost::Float64
+    nl_mitigation_variable_cost::Float64
+    intensity_limits::Tuple{Float64,Float64}
+    nl_mitigation_limits::Tuple{Float64,Float64}
+    nl_mitigation_subsidy::Float64
+    methane_emission_rate::Float64
+    carbon_sequestration_over_time::Vector{Float64}
+    nitrous_oxide_price::Float64
+    methane_price::Float64
+    carbon_price::Float64
+    max_production_capability::Float64
+    max_nl_mitigation_capability::Float64
+    production_capability_transform::Float64
+    cost_to_switch_from::Dict{String,Float64}
+    spillover_learning_rate_from::Dict{String,Float64}
+end
+
+mutable struct LandParcel
+    uid::String
+    nzseg::Int64
+    lucas_2016_land_use::String
+    allowed_land_uses::Vector{String}
+    land_use_name::String
+    area_ha::Float64
+    avg_angle::Float64
+    years_in_current_land_use::Float64
+    max_revenue_by_land_use::Dict{String,Float64}
+    typecode::Int64
+    min_intensity_by_land_use::Dict{String,Float64}
+    max_intensity_by_land_use::Dict{String,Float64}
+    n_mitigation_potential_by_land_use::Dict{String,Float64}
+    p_mitigation_potential_by_land_use::Dict{String,Float64}
+    N_intensity_coefficients_by_land_use::Dict{String,Tuple{Float64,Float64,Float64}}
+    P_intensity_coefficients_by_land_use::Dict{String,Tuple{Float64,Float64,Float64}}
+    N2O_intensity_coefficients_by_land_use::Dict{String,Tuple{Float64,Float64,Float64}}
+    Sediment_intensity_coefficients_by_land_use::Dict{String,Tuple{Float64,Float64}}
+    sediment_loss_potenial_by_land_use::Dict{String,Float64}
+    carbon_sequestration_adjustment_by_land_use::Dict{String,Float64}
+    nitrogen_price::Float64
+    phosphorous_price::Float64
+    sediment_price::Float64
+    intensity::Float64
+    nl_mitigation::Float64
+    utility::Float64
+    profit_npv_per_ha::Float64
+    total_yearly_profit::Float64
+    switching_costs_incurred::Float64
+    nl_mitigation_subsidy::Float64
+    wq_pollutant_costs::Float64
+    ghg_emission_costs::Float64
+    sequestration_payments::Float64
+    nitrogen_loss::Float64
+    phosphorous_loss::Float64
+    methane_emissions::Float64
+    nitrous_oxide_emissions::Float64
+    sediment_loss::Float64
+    carbon_sequestered::Float64
+end
+
+mutable struct Agent
+    uid::String
+    age::Float64
+    x_coordinate::Float64
+    y_coordinate::Float64
+    likelihood_to_change::Float64
+    learning_rate::Float64
+    time_spent_on_external_resources::Float64
+    plant_and_animal_capability_by_land_use::Dict{String,Float64}
+    people_capability::Float64
+    business_capability::Float64
+    nl_mitigation_capability::Float64
+    nitrogen_weighting::Float64
+    phosphorous_weighting::Float64
+    ghg_weighting::Float64
+    sediment_weighting::Float64
+    financial_discount_rate::Float64
+    env_discount_rate::Float64
+    carbon_price_growth_rate_forecast::Float64
+    utility_barrier_matrix::Dict{String,Dict{String,Float64}}
+    deviation_parameter::Float64
+    is_non_compliant::Bool
+    profit_to_date::Float64
+    undertaking_initial_evaluation::Bool
+    land_parcels::Vector{LandParcel}
+    neighbours::Vector{Agent}
+end
+
+mutable struct ExternalResource
+    uid::String
+    funding::String
+    capability_shift_by_topic::Dict{String,Float64}
+    n_participants::Int64
+    duration::Float64
+    land_use_change_focus::Float64
+    cost::Float64
+    run_this_timestep::Bool
+end
+
+mutable struct Catchment
+    nzseg::Int64
+    terminal_seg::Int64
+    land_parcels::Vector{LandParcel}
+    primary_land_use::String
+    watershed_area_ha::Float64
+    area_in_production::Float64
+    area_in_forestry_or_fallow::Float64
+    total_coverage::Float64
+    MAL_N::Float64
+    MAL_P::Float64
+    MAL_Sediment::Float64
+    out_of_model_Sediment_load::Float64
+    min_out_of_model_Sediment_load::Float64
+    has_Sediment_exemption::Bool
+    Load_N::Float64
+    Load_P::Float64
+    Load_Sediment::Float64
+    excess_N_percent::Float64
+    excess_P_percent::Float64
+    excess_Sediment_percent::Float64
+    tax_revenue_pool::Float64
+end
+
+end

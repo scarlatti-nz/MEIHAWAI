@@ -1,0 +1,15 @@
+geopandas
+matplotlib
+numpy
+pandas
+pyarrow
+pyogrio
+rasterio
+scikit_learn
+scipy
+seaborn==0.12.2
+snakemake==7.30.1
+argparse
+pyogrio
+geopandas
+rasterio
