@@ -1,6 +1,5 @@
 ### Repository for the MEIHAWAI (Measuring the Effects of Interventions with Heterogeneous Agents on Water using Agent Interactions) model ###
 
-Brief summary:
 MEIHAWAI is a national scale, hectare resolution simulation model of producer behaviour. It is designed to simulate the effects of policy interventions on land use, water quality, and farm profitability in Aotearoa New Zealand. The model is based on the principles of agent-based modelling, and simulates the behaviour of individual farmers in response to policy interventions, market conditions, and environmental factors. The model is designed to be used as a tool for policy analysis, and can be used to simulate the effects of a wide range of policy interventions on land use, water quality, and farm profitability. You can read more about the model in the paper linked below.
 
 LINK TO PAPER HERE
@@ -10,7 +9,7 @@ This project is distributed under the Creative Commons Attribution-ShareAlike 4.
 ### How do I get set up? ###
 
 #### Summary of set up ####
-MEIHAWAI is written in [Julia](https://julialang.org) (model engine) and [Python](https://www.python.org) (plotting and data processing utilities), and uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system to tie it all together. Since the model is designed to simulate the entirety of Aotearoa New Zealand's productive land with hectare-scale resolution, it makes use of high-level paralellisation, optimised to run on a HPC cluster such as NeSI. The national scale analysis, across the four scenarios specified in the RunEverythingConfig.yaml file, should take around 800 CPU hours to run. Running the workflow on a single machine is possible, but will take several weeks to complete at national scale, so we recommend using a HPC cluster if possibl, or restricting the analysis to a much smaller region of interest.
+MEIHAWAI is written in [Julia](https://julialang.org) (model engine) and [Python](https://www.python.org) (plotting and data processing utilities), and uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system to tie it all together. Since the model is designed to simulate the entirety of Aotearoa New Zealand's productive land with hectare-scale resolution, it makes use of high-level paralellisation, optimised to run on a HPC cluster such as [NeSI](https://www.nesi.org.nz/). The national scale analysis, across the four scenarios specified in the RunEverythingConfig.yaml file, should take around 800 CPU hours to run. Running the workflow on a single machine is possible, but will take several weeks to complete at national scale, so we recommend using a HPC cluster if possibl, or restricting the analysis to a much smaller region of interest.
 
 #### Downloads ####
 
