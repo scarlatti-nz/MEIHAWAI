@@ -22,7 +22,7 @@ carbonGrowthPathDefault: "parabolic"
 # Admin, data folders, etc
 
 # Maximum number of land parcels to generate per cell. 8000 is a good default for HPC, can use lower values for quick local runs. 
-maxParcelsPerCell: 100
+maxParcelsPerCell: 5000
 # Directory containing the input data for the model
 dataDir: "data/"
 # Number of cells to run the model on, 783 for full NZ (higher values will be treated as 783). Chooses pseudorandomly from the grid cells in dataDir if less than 783.
