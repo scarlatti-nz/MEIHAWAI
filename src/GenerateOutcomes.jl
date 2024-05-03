@@ -17,15 +17,7 @@ function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse})
         n_mitigation, p_mitigation = DecisionProblem.split_nl_mitigation(nl_mitigation,land_parcel::LandParcel) 
         nitrogen_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,production_capability,intensity,n_mitigation,"Nitrogen")
         phosphorous_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,production_capability,intensity,p_mitigation,"Phosphorous")
-        
-        if land_parcel.uid == "land_parcel_86"
-            println("intensity: ",intensity)
-            println("sediment: ", land_parcel.sediment_loss)
-        end
         sediment_loss = DecisionProblem.calculate_sediment_loss(land_use,land_parcel,intensity)
-        if land_parcel.uid == "land_parcel_86"
-            println("sediment: ", sediment_loss)
-        end
 
         methane_emissions = DecisionProblem.calculate_methane_emissions(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation)
         nitrous_oxide_emissions = DecisionProblem.calculate_nitrous_oxide_emissions(land_use,land_parcel,agent,intensity,nl_mitigation)
