@@ -1,6 +1,5 @@
 ### Repository for the MEIHAWAI (Measuring the Effects of Interventions with Heterogeneous Agents on Water using Agent Interactions) model ###
 
-Brief summary:
 MEIHAWAI is a national scale, hectare resolution simulation model of producer behaviour. It is designed to simulate the effects of policy interventions on land use, water quality, and farm profitability in Aotearoa New Zealand. The model is based on the principles of agent-based modelling, and simulates the behaviour of individual farmers in response to policy interventions, market conditions, and environmental factors. The model is designed to be used as a tool for policy analysis, and can be used to simulate the effects of a wide range of policy interventions on land use, water quality, and farm profitability. You can read more about the model in the paper linked below.
 
 LINK TO PAPER HERE
