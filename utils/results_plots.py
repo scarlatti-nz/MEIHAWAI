@@ -105,8 +105,10 @@ def get_data(dir):
     forestry_zero_row["Land use category"] = "Forestry"
     forestry_zero_row["Timestep"] = 2025
     aggregates_by_cat = aggregates_by_cat.append(forestry_zero_row,ignore_index=True)
-    # adjust for existing forestry area, scaled to model run scale
-    aggregates_by_cat.loc[aggregates_by_cat["Land use category"] == "Forestry","Area (ha)"] += 1.6e6
+    # adjust for existing forestry area, only if running at scale
+    if aggregates.loc[aggregates['Timestep']==2025,'Area (ha)'].sum() > 7e6:
+        aggregates_by_cat.loc[aggregates_by_cat["Land use category"] == "Forestry","Area (ha)"] += 1.6e6
+    
     aggregates_by_cat.sort_values(by=["Land use category","Timestep"],inplace=True)
 
     return outcomes, aggregates, aggregates_by_cat
@@ -122,6 +124,7 @@ def assign_endlabels(plot,df,xlabel,ylabel,hue,ylim,lpad=1):
     #     minygap = ylim * 0.12
     # else:
     #     minygap = ylim * 0.06
+
     while any([adjusted[i+1] - adjusted[i] < minygaps[i+1] for i in range(len(adjusted)-1)]):
         for i in range(len(adjusted)-1):
             minygap = minygaps[i+1]
@@ -133,12 +136,12 @@ def assign_endlabels(plot,df,xlabel,ylabel,hue,ylim,lpad=1):
         adjusted[0] -= 1
     yoffsetdict = dict(zip(endpoints,adjusted))
 
-
+    
     for handle, label in zip(handles, labels):
         last_valid = df[df[hue] == label].dropna().iloc[-1]
         y = last_valid[ylabel]
         x = last_valid[xlabel]
-        t = plot.text(x, yoffsetdict[y], ' '*lpad + label, color=handle.get_color(), 
+        t = plot.text(x, yoffsetdict.get(y,0), ' '*lpad + label, color=handle.get_color(), 
                 verticalalignment='center', bbox=dict(facecolor='white', alpha=0.0, edgecolor='none', boxstyle='round,pad=0.1'))
         texts.append(t)
     plot.legend().remove()
