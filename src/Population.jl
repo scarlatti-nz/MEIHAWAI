@@ -129,7 +129,7 @@ function initialise_land_uses(;enable_additional_uses=[])
     methane_price = 0.0
     carbon_price = 0.0
     
-    max_nl_mitigation_capability = 10.0
+    max_nl_mitigation_capability = 4.0
     production_capability_transform = float.(land_use_inputs[:,"Production capability transform"])
     
     #   Cost_switching for land_uses
@@ -410,7 +410,7 @@ function create_agent(uid, land_parcels, land_uses, x_coordinate, y_coordinate,c
     learning_rate = rand(TruncatedNormal(1,0.3,0.5,2))
     time_spent_on_external_resources = 0.0
     plant_and_animal_capability_by_land_use, people_capability, business_capability = capability_initialisation_matrix == "purchaser" ? seed_purchaser_capability(land_uses,land_parcels) : seed_initial_capability(land_uses,land_parcels,capability_initialisation_matrix)
-    nl_mitigation_capability = rand(TruncatedNormal(0.4,0.25,0.001,1))
+    nl_mitigation_capability = rand(TruncatedNormal(0.1,0.3,0.001,1))
     environmental_concern = rand() < 0.3 ? 0 : rand(Uniform(0,10))
     nitrogen_weighting = environmental_concern * 3e-4
     phosphorous_weighting = environmental_concern * 5e-3

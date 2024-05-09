@@ -12,11 +12,12 @@ function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse})
         nl_mitigation = land_parcel.nl_mitigation
         production_capability = land_use.max_production_capability * (( agent.plant_and_animal_capability_by_land_use[land_use.name] ^ 0.5 * agent.people_capability ^ 0.25 * agent.business_capability ^ 0.25) + land_use.production_capability_transform)
         production_capability = clamp(production_capability,1e-3,Inf)
+        nl_mitigation_capability = land_use.max_nl_mitigation_capability * agent.nl_mitigation_capability
         year = round(Integer,land_parcel.years_in_current_land_use)
 
         n_mitigation, p_mitigation = DecisionProblem.split_nl_mitigation(nl_mitigation,land_parcel::LandParcel) 
-        nitrogen_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,production_capability,intensity,n_mitigation,"Nitrogen")
-        phosphorous_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,production_capability,intensity,p_mitigation,"Phosphorous")
+        nitrogen_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,nl_mitigation_capability,intensity,n_mitigation,"Nitrogen")
+        phosphorous_loss = DecisionProblem.calculate_nutrient_loss(land_use,land_parcel,agent,nl_mitigation_capability,intensity,p_mitigation,"Phosphorous")
         sediment_loss = DecisionProblem.calculate_sediment_loss(land_use,land_parcel,intensity)
 
         methane_emissions = DecisionProblem.calculate_methane_emissions(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation)

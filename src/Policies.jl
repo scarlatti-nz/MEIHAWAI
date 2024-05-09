@@ -204,8 +204,8 @@ function generate_baseline_external_resources(agents::Vector{Agent})::Vector{Ext
     #   counts the number of agents
     n_agents = length(agents)
 
-    # allocate extension spending to this grid cell based on national total of 200M and 72732 agents
-    total_spend_available = 2e8 * n_agents / 72732
+    # allocate extension spending to this grid cell based on national total of 200M and 68325 agents
+    total_spend_available = 2e8 * n_agents / 68325
 
     #   Iterates over each row in inputs
     for row in eachrow(inputs)
@@ -243,8 +243,8 @@ function generate_additional_external_resources(agents::Vector{Agent},extension_
     #   counts the number of agents
     n_agents = length(agents)
 
-    # allocate extension spending to this grid cell based on national total of 200M and 72732 agents
-    total_spend_available = extension_scale * 2e8 * n_agents / 72732
+    # allocate extension spending to this grid cell based on national total of 200M and 68325 agents
+    total_spend_available = extension_scale * 2e8 * n_agents / 68325
 
     #   Iterates over each row in inputs
     for row in eachrow(inputs)
