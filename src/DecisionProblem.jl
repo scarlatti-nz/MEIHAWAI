@@ -101,7 +101,7 @@ function calculate_profit_over_time(revenue_at_maturity,costs_at_maturity,fixed_
         return profit
     end
     
-    #   If years_to_yield = crop_lifetime:
+    #   If years_to_yield = crop_lifetime (special case for production forestry with a yield every 28 years)
     if crop_lifetime == years_to_yield
         #   Revenue & variable costs during lifetime = 0. On end concatenate revenue and variable costs for maturity year 
         revenue = vcat(zeros(crop_lifetime), [revenue_at_maturity])
@@ -141,7 +141,7 @@ end
     return price_growth_array
 end
 
-function calculate_pollutant_costs(land_use::LandUse,land_parcel::LandParcel,agent::Agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon)
+function calculate_pollutant_costs(land_use::LandUse,land_parcel::LandParcel,agent::Agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon,years_until_taxes)
 
     wq_growth_rate = 1.03
     wq_price_growth_array = get_price_growth_array(wq_growth_rate,time_horizon)
@@ -165,6 +165,10 @@ function calculate_pollutant_costs(land_use::LandUse,land_parcel::LandParcel,age
 
     wq_costs_over_time = wq_tax * wq_price_growth_array
     ghg_costs_over_time = ghg_tax * ghg_price_growth_array
+
+    # zero out wq and ghg taxes until they take effect
+    wq_costs_over_time[1:years_until_taxes] .= 0
+    ghg_costs_over_time[1:years_until_taxes] .= 0
     # #   Taxes adjusted for growth rate pushed to tax over time
 
     #   Discount pollutant costs by 1/3 for non-compliant agents
@@ -193,7 +197,7 @@ function calculate_sequestration_payments(land_use::LandUse,land_parcel::LandPar
     return discounted
 end
 
-function calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,years_in_current_land_use,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions)
+function calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,years_in_current_land_use,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,years_until_taxes)
     #   Calculates profit. Considers land use, land parcel, agent, production capability, intensity, non-linear mitigation, years in current land use, time horizon, switching cost, nitrogen loss, phosphorous loss, methane emissions, and nitrous oxide emissions.
     #   Returns revenue at maturity and variable costs at maturity
     revenue_at_maturity = calculate_revenue(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation)
@@ -210,7 +214,7 @@ function calculate_profit_anpv(land_use,land_parcel,agent,production_capability,
    #   If land use is forestry, account for carbon sequestration benefit
 
     #   Otherwise, account for pollutant costs
-    wq_pollutant_costs_over_time, ghg_emission_costs_over_time = calculate_pollutant_costs(land_use,land_parcel,agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon)
+    wq_pollutant_costs_over_time, ghg_emission_costs_over_time = calculate_pollutant_costs(land_use,land_parcel,agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon,years_until_taxes)
 
     profit_npv -= sum(wq_pollutant_costs_over_time)
     if occursin("forestry",land_use.name)
@@ -234,7 +238,7 @@ function calculate_environmental_npv(weighting,emissions,annualised_profit,time_
     return sum(weighting * profit_scalar * emissions * discount_vector)
 end
 
-function split_nl_mitigation(nl_mitigation,land_parcel::LandParcel) 
+function split_nl_mitigation(nl_mitigation,land_parcel::LandParcel)
     # if no prices set, apply same level of mitigation to each nutrient. 
     # otherwise, mitigate each nutrient in proportion to its past year's contribution to costs, capped at mitigation = 1.0
     total_cost = land_parcel.nitrogen_price * land_parcel.nitrogen_loss + land_parcel.phosphorous_price * land_parcel.phosphorous_loss
@@ -257,7 +261,7 @@ function split_nl_mitigation(nl_mitigation,land_parcel::LandParcel)
     return n_mitigation, p_mitigation
 end
 
-function calculate_utility(land_use::LandUse,land_parcel::LandParcel,agent::Agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation)
+function calculate_utility(land_use::LandUse,land_parcel::LandParcel,agent::Agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation,years_until_taxes)
     #   Calculates utility of given land parcel for given agent
     #   Considers land use, production capability, nl_mitigation capability, and intensity
 
@@ -281,7 +285,7 @@ function calculate_utility(land_use::LandUse,land_parcel::LandParcel,agent::Agen
 
 
     #   Returns annualised profit and environmental npv for given land use, land parcel, agent, production capability, nl_mitigation capability, intensity, non-linear mitigation, years in current land use, time horizon, switching cost, nitrogen loss, phosphorous loss, methane emissions, and nitrous oxide emissions.
-    annuity_scalar, annualised_profit = calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,years_in_current_land_use,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions)
+    annuity_scalar, annualised_profit = calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,years_in_current_land_use,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,years_until_taxes)
     
     #   Calculates npv of environmental losses. Considers weighting, emissions, annualised profit, time horizon, and discount rate.
     nitrogen_loss_npv, phosphorous_loss_npv, methane_emissions_npv, nitrous_oxide_emissions_npv, sediment_loss_npv = calculate_environmental_npv.([agent.nitrogen_weighting,agent.phosphorous_weighting,agent.ghg_weighting,agent.ghg_weighting,agent.sediment_weighting],
@@ -330,7 +334,7 @@ function calculate_production_capability(agent,land_use,forecast_learning_adjust
     return production_capability
 end
 
-function value_land_use(agent::Agent,land_parcel::LandParcel,land_use::LandUse;forecast_learning_adjustment=false,tolerance=5e-3)
+function value_land_use(agent::Agent,land_parcel::LandParcel,land_use::LandUse,years_until_taxes;forecast_learning_adjustment=false,tolerance=5e-3)
 #   optimization technique: optimal intensity and nl_mitigation that maximises utility
 
     #   Calculate production capability - weighted sum of people and business capability and considers activity learning
@@ -349,7 +353,7 @@ function value_land_use(agent::Agent,land_parcel::LandParcel,land_use::LandUse;f
             return Inf
         end
         #   Otherwise, calculate utility with function calculate_utility
-        utility = calculate_utility(land_use,land_parcel,agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation)
+        utility = calculate_utility(land_use,land_parcel,agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation,years_until_taxes)
         return -1 * utility
     end
 
@@ -386,7 +390,7 @@ function value_land_use(agent::Agent,land_parcel::LandParcel,land_use::LandUse;f
     end
 
     #   Recall calculate_utility function with intensity and nl_mitigation updated 
-    utility = calculate_utility(land_use,land_parcel,agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation)
+    utility = calculate_utility(land_use,land_parcel,agent,production_capability,nl_mitigation_capability,intensity,nl_mitigation,years_until_taxes)
 
     return utility, intensity, nl_mitigation
 end
@@ -399,9 +403,9 @@ function restrict_change(land_parcel,proportion_of_change,intensity,nl_mitigatio
     return intensity, nl_mitigation
 end
 
-function manage_existing_land_use!(agent::Agent,land_parcel::LandParcel,land_uses::Vector{LandUse},proportion_of_change::Float64)
+function manage_existing_land_use!(agent::Agent,land_parcel::LandParcel,land_uses::Vector{LandUse},proportion_of_change::Float64,years_until_taxes)
     #   Manages existing land use of land parcel. Takes agent, land parcel, land uses, and initialise as arguments. Calculates utility, intensity, and nl_mitigation for existing use
-    util, intensity, nl_mitigation, = value_land_use(agent,land_parcel,filter(x->x.name==land_parcel.land_use_name,land_uses)[1],tolerance=1e-5)
+    util, intensity, nl_mitigation, = value_land_use(agent,land_parcel,filter(x->x.name==land_parcel.land_use_name,land_uses)[1],years_until_taxes,tolerance=1e-5)
         #   Otherwise, maintain as attribute values + change potential adjustment
     intensity,nl_mitigation = restrict_change(land_parcel,proportion_of_change,intensity,nl_mitigation)
     #   Set attributes of land parcel to calculated values
@@ -409,7 +413,7 @@ function manage_existing_land_use!(agent::Agent,land_parcel::LandParcel,land_use
     land_parcel.nl_mitigation = nl_mitigation
 end
 
-function evaluate_land_uses!(agent::Agent,land_parcel::LandParcel,land_uses::Vector{LandUse},proportion_of_change::Float64,disallow_forestry)
+function evaluate_land_uses!(agent::Agent,land_parcel::LandParcel,land_uses::Vector{LandUse},proportion_of_change::Float64,disallow_forestry,years_until_taxes)
     #   Evaluating different land uses for a given land parcel and deciding on the most beneficial one. 
     
     #   Checks if agent is initalising. If true, years_in_lu_adjustment = random number 1 -> 18, false, years_in_lu_adjustment = 0
@@ -423,7 +427,7 @@ function evaluate_land_uses!(agent::Agent,land_parcel::LandParcel,land_uses::Vec
         allowed_land_uses = filter(lu->lu.name == "fallow",land_uses)
     end
     #   Calculate land_use_values, intensities, and nl_mitigations for each allowed land use -  value_land_use function - returns optimum utility, intensity, and nl_mitigation
-    prospective_land_use_values, intensities, nl_mitigations = zip(value_land_use.(Ref(agent),Ref(land_parcel), allowed_land_uses, forecast_learning_adjustment=true)...)
+    prospective_land_use_values, intensities, nl_mitigations = zip(value_land_use.(Ref(agent),Ref(land_parcel), allowed_land_uses, Ref(years_until_taxes), forecast_learning_adjustment=true)...)
     
     # Finds the index of the current land use in the list of allowed land uses for land_parcel
     current_land_use_idx = findfirst(x->x==land_parcel.land_use_name,[lu.name for lu in allowed_land_uses])
@@ -458,24 +462,32 @@ function evaluate_land_uses!(agent::Agent,land_parcel::LandParcel,land_uses::Vec
         end
         #   Recall manage land_use with updated land_parcel, land_uses, and initialise properties
         land_parcel.years_in_current_land_use = years_in_lu_adjustment
-        manage_existing_land_use!(agent,land_parcel,land_uses,1.0)
+        manage_existing_land_use!(agent,land_parcel,land_uses,1.0,years_until_taxes)
 
     else
         #   Otherwise, manage existing land use of non-switched land_use
-        manage_existing_land_use!(agent,land_parcel,land_uses,proportion_of_change)
+        manage_existing_land_use!(agent,land_parcel,land_uses,proportion_of_change,years_until_taxes)
     end
 end
 
 
-function get_evaluation_probability_vector(agent::Agent,disable_land_use_change)
+function get_evaluation_probability_vector(agent::Agent,land_uses::Vector{LandUse},years_until_taxes,disable_land_use_change)
     if agent.undertaking_initial_evaluation
         return ones(length(agent.land_parcels))
     elseif disable_land_use_change
         return zeros(length(agent.land_parcels))
     end
-    last_period_utilities = [lp.utility for lp in agent.land_parcels]
-    max_util = max(100, 1.15 * maximum(last_period_utilities)) # 15% buffer to utility ceiling to allow for evaluation of best parcel
-    relative_utils = max_util .- last_period_utilities
+    # recalculate utilities using last period's intensity and mitigation 
+    current_utilities = []
+    for lp in agent.land_parcels
+        current_lu = filter(x->x.name==lp.land_use_name,land_uses)[1]
+        production_capability = calculate_production_capability(agent,current_lu,false)
+        nl_mitigation_capability = agent.nl_mitigation_capability * current_lu.max_nl_mitigation_capability * agent.deviation_parameter
+        current_utility = calculate_utility(current_lu,lp,agent,production_capability,nl_mitigation_capability,lp.intensity,lp.nl_mitigation,years_until_taxes)
+        push!(current_utilities,current_utility)
+    end
+    max_util = max(100, 1.15 * maximum(current_utilities)) # 15% buffer to utility ceiling to allow for evaluation of best parcel
+    relative_utils = max_util .- current_utilities
     # cap relative likelihood of evaluation at 5x the mean
     prob_vec = relative_utils ./ sum(relative_utils) .* agent.likelihood_to_change .* length(agent.land_parcels)
     # zero out evaluation probability if only one land use is allowed
@@ -485,21 +497,21 @@ function get_evaluation_probability_vector(agent::Agent,disable_land_use_change)
 end
 
 
-function manage_land_parcels!(agent::Agent,land_uses::Vector{LandUse},disable_land_use_change;disallow_forestry=false)
+function manage_land_parcels!(agent::Agent,land_uses::Vector{LandUse},disable_land_use_change,years_until_taxes;disallow_forestry=false)
     #   Takes an Agent object and a vector of LandUse objects as arguments, to evaluate land_use's intensity & nl_mitigation for each land parcel managed by the agent.
     #   Should agent evaluate land use (make a land use change decision), or manage existing use:
     #   Generate random number, if likelihood to change > number or initialise = true, => evaluate land use
-    evaluation_probability_vector = get_evaluation_probability_vector(agent,disable_land_use_change)
+    evaluation_probability_vector = get_evaluation_probability_vector(agent,land_uses,years_until_taxes,disable_land_use_change)
     for (land_parcel,probability) in zip(agent.land_parcels,evaluation_probability_vector)
         land_parcel.switching_costs_incurred = 0
         chooses_to_evaluate = probability > rand()
         if chooses_to_evaluate
         #   Iterate over land_parcels managed by the agent, and evaluate land use of each
             #   Evaluate land use of land parcel in terms of it's utility and nl_mitigation and whether it is the best opportunity
-            evaluate_land_uses!(agent,land_parcel,land_uses,probability,disallow_forestry)
+            evaluate_land_uses!(agent,land_parcel,land_uses,probability,disallow_forestry,years_until_taxes)
     #   Otherwise => manage land use and return intensity and nl_mitigation of land parcel
         else
-            manage_existing_land_use!(agent,land_parcel,land_uses,probability)
+            manage_existing_land_use!(agent,land_parcel,land_uses,probability,years_until_taxes)
         end
     end
     #  Set agent's initial evaluation to false since they've just completed it

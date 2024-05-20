@@ -3,7 +3,7 @@ export calculate_outcomes!
 using ..Structs, ..DecisionProblem
 
 
-function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse})
+function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse},years_until_taxes)
     time_horizon = 50
     switching_cost = 0
     for land_parcel in agent.land_parcels
@@ -23,7 +23,7 @@ function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse})
         methane_emissions = DecisionProblem.calculate_methane_emissions(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation)
         nitrous_oxide_emissions = DecisionProblem.calculate_nitrous_oxide_emissions(land_use,land_parcel,agent,intensity,nl_mitigation)
 
-        wq_pollutant_costs, ghg_emission_costs = DecisionProblem.calculate_pollutant_costs(land_use,land_parcel,agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon)
+        wq_pollutant_costs, ghg_emission_costs = DecisionProblem.calculate_pollutant_costs(land_use,land_parcel,agent,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,time_horizon,years_until_taxes)
             # take only the first element of the returned arrays, which are the costs for the current year
         land_parcel.wq_pollutant_costs = wq_pollutant_costs[1] * land_parcel.area_ha
         if ! (occursin("forestry",land_parcel.land_use_name) || occursin("fallow",land_parcel.land_use_name))
@@ -37,8 +37,8 @@ function agent_and_land_outcomes!(agent::Agent,land_uses::Vector{LandUse})
             land_parcel.carbon_sequestered = land_parcel.area_ha * land_parcel.carbon_sequestration_adjustment_by_land_use[land_use.name] * land_use.carbon_sequestration_over_time[year+1]
             land_parcel.ghg_emission_costs = 0
         end
-        _, profit_anpv = DecisionProblem.calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,year,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions)
-        utility = DecisionProblem.calculate_utility(land_use,land_parcel,agent,production_capability,agent.nl_mitigation_capability,intensity,nl_mitigation)
+        _, profit_anpv = DecisionProblem.calculate_profit_anpv(land_use,land_parcel,agent,production_capability,intensity,nl_mitigation,year,time_horizon,switching_cost,nitrogen_loss,phosphorous_loss,sediment_loss,methane_emissions,nitrous_oxide_emissions,years_until_taxes)
+        utility = DecisionProblem.calculate_utility(land_use,land_parcel,agent,production_capability,agent.nl_mitigation_capability,intensity,nl_mitigation,years_until_taxes)
         land_parcel.nitrogen_loss = nitrogen_loss
         land_parcel.phosphorous_loss = phosphorous_loss
         land_parcel.methane_emissions = methane_emissions
@@ -85,9 +85,7 @@ function catchment_outcomes!(catchment::Catchment,land_uses::Vector{LandUse})
     Sed_leaching_scalar = 1.0 # sediment yields calculated from same underlying model so no need to scale
     baseline_N_leaching_per_ha = sum([lp.N_intensity_coefficients_by_land_use["native-forestry"][1] * lp.area_ha for lp in catchment.land_parcels]) / sum([lp.area_ha for lp in catchment.land_parcels])
     baseline_P_leaching_per_ha = sum([lp.P_intensity_coefficients_by_land_use["native-forestry"][1] * lp.area_ha for lp in catchment.land_parcels]) / sum([lp.area_ha for lp in catchment.land_parcels])
-    # sediment base leaching weighted higher than pure forest to account for some bare land making excess contributions
-    
-
+     
     area_by_lu = Dict(lu.name => 0.0 for lu in land_uses)
     for lp in catchment.land_parcels
         total_N_leached += lp.nitrogen_loss * lp.area_ha

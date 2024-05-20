@@ -86,10 +86,20 @@ s = ArgParseSettings()
         help = "Abort model after initialisation timestep"
         arg_type=Bool
         default=false
+    "--disable-baseline-extension"
+        help = "Disables all extension spending"
+        arg_type=Bool
+        default=false
 end
 parsed_args = parse_args(ARGS, s)
 geodata = parsed_args["geodata"]
 output_folder = parsed_args["output-dir"]
+
+if parsed_args["sensitivity-analysis"] == 13
+    random.seed!(442324)
+elseif parsed_args["sensitivity-analysis"] == 14
+    random.seed!(781230)
+end
 
 function main(;timedelta = 1)
     ##
@@ -98,11 +108,11 @@ function main(;timedelta = 1)
     SocialNetwork.assign_neighbours!(agents)
     ##
     ##
-    DecisionProblem.manage_land_parcels!.(agents,Ref(land_uses),parsed_args["disable-land-use-change"],disallow_forestry=true)
+    DecisionProblem.manage_land_parcels!.(agents,Ref(land_uses),Ref(parsed_args["disable-land-use-change"]),Ref(0),disallow_forestry=true)
 
     ModelStep.add_initial_capability!.(agents,Ref(land_uses))
 
-    GenerateOutcomes.agent_and_land_outcomes!.(agents,Ref(land_uses))
+    GenerateOutcomes.agent_and_land_outcomes!.(agents,Ref(land_uses),Ref(0))
 
     GenerateOutcomes.catchment_outcomes!.(catchments,Ref(land_uses))
 
@@ -110,9 +120,9 @@ function main(;timedelta = 1)
     # Population.adjust_l2c!(agents)
 
 
-    Policies.apply_incentives!(land_uses,agents,catchments,parsed_args["NPrice"],parsed_args["PPrice"],parsed_args["SedimentPrice"],parsed_args["N2OPrice"],parsed_args["CH4Price"],parsed_args["CO2Price"])
+    years_until_taxes = Policies.apply_incentives!(land_uses,agents,catchments,parsed_args["NPrice"],parsed_args["PPrice"],parsed_args["SedimentPrice"],parsed_args["N2OPrice"],parsed_args["CH4Price"],parsed_args["CO2Price"])
     
-    baseline_external_resources = Policies.generate_baseline_external_resources(agents)
+    baseline_external_resources = Policies.generate_baseline_external_resources(agents,parsed_args["disable-baseline-extension"])
     additional_extenral_resources = Policies.generate_additional_external_resources(agents,parsed_args["extension-scale"])
     external_resources = [baseline_external_resources;additional_extenral_resources]
     #   Specifies how regulations applied depend on rest of model - deprecated
@@ -140,10 +150,12 @@ function main(;timedelta = 1)
         return "aborting after initialisation"
     end
     
+    years_until_taxes = 5
     for timestep in 1:25
 
         #   Advance time and perform model calculations at each step and record the data for each agent
-        agents = ModelStep.step!(agents,land_uses,external_resources,catchments,timestep,timedelta,parsed_args["disable-land-use-change"],parsed_args["carbon-growth-path"],parsed_args["N2OPrice"],parsed_args["CH4Price"],parsed_args["CO2Price"])
+        agents = ModelStep.step!(agents,land_uses,external_resources,catchments,timestep,timedelta,years_until_taxes,parsed_args["disable-land-use-change"],parsed_args["carbon-growth-path"],parsed_args["N2OPrice"],parsed_args["CH4Price"],parsed_args["CO2Price"])
+        years_until_taxes -= timedelta
         RecordData.export_agents(agents,land_uses,land_info,timestep,output_folder)
         RecordData.export_catchments(catchments,timestep,output_folder)
         RecordData.export_extension_spend!(external_resources,timestep,output_folder)

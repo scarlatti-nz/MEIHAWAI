@@ -193,14 +193,18 @@ function apply_regulations!(land_uses::Vector{LandUse},agents::Vector{Agent},reg
 end
 
 
-function generate_baseline_external_resources(agents::Vector{Agent})::Vector{ExternalResource}
+function generate_baseline_external_resources(agents::Vector{Agent},disable_baseline_mitigation::Bool)::Vector{ExternalResource}
+    
     external_resources = []
     topics = ["plant_and_animal","people","business","nl_mitigation"]
 
     #   Reads in dataframe from Excel file in extension sheet
     inputs = DataFrame(XLSX.readtable("data/Model inputs.xlsx","extension"))
-
-    inputs = filter(row -> row[:Scenario] == "Baseline", inputs) 
+    if disable_baseline_mitigation
+        inputs = filter(row -> row[:Scenario] == "Baseline_no_mitigation", inputs)
+    else
+        inputs = filter(row -> row[:Scenario] == "Baseline", inputs)
+    end
     #   counts the number of agents
     n_agents = length(agents)
 

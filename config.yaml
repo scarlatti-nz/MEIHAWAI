@@ -1,17 +1,20 @@
 N2OPrice: 0.0
 CH4Price: 0.0
 CO2Price: 70.0
-NPrice: 0.0
-PPrice: 0.0
-SedimentPrice: 0.0
+NPrice: 100.0
+PPrice: 1000.0
+SedimentPrice: 5000.0
 extensionScale: 0.0
-sedimentModel: "default"
+sedimentModel: "alt"
 enableBolus: "false"
 disableLUC: "false"
 initialiseOnly: "false"
-maxParcelsPerCell: 5000
+maxParcelsPerCell: 3000
 carbonGrowthPath: "parabolic"
+disableBaselineExtension: "true"
+# timestamp: '2024_05_17_16_29_02'
 
 dataDir: "data/"
+# dataDir: "../nesi_downloads/sample170424/"
 outputDir: "outputs/"
-verbosePlots: False
+verbosePlots: True

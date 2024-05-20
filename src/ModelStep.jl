@@ -61,6 +61,7 @@ end
 function advance_time(agent::Agent,land_uses::Vector{LandUse},timedelta,utility_barrier_inputs::DataFrame)
     #   Increment age and decrease likelihood to change land use
     agent.age += timedelta
+
     agent.likelihood_to_change *= 0.99
     agent.time_spent_on_external_resources = 0.0
     #   Calculate profit expectation
@@ -80,7 +81,7 @@ function advance_time(agent::Agent,land_uses::Vector{LandUse},timedelta,utility_
 end
 
 
-function step!(agents::Vector{Agent},land_uses::Vector{LandUse},external_resources::Vector{ExternalResource},catchments::Vector{Catchment},timestep,timedelta,disable_land_use_change,carbon_price_growth_path,N2OPrice,CH4Price,CO2Price)
+function step!(agents::Vector{Agent},land_uses::Vector{LandUse},external_resources::Vector{ExternalResource},catchments::Vector{Catchment},timestep,timedelta,years_until_taxes,disable_land_use_change,carbon_price_growth_path,N2OPrice,CH4Price,CO2Price)
     utility_barrier_inputs = DataFrame(XLSX.readtable("data/Model inputs.xlsx","utility_barrier_matrix"))
     agents = advance_time.(agents,Ref(land_uses),Ref(timedelta),Ref(utility_barrier_inputs))
     Learning.learn_by_doing!.(agents,Ref(land_uses))
@@ -94,8 +95,8 @@ function step!(agents::Vector{Agent},land_uses::Vector{LandUse},external_resourc
     else
         throw(ArgumentError("Invalid carbon growth path"))
     end
-    @time DecisionProblem.manage_land_parcels!.(agents,Ref(land_uses),disable_land_use_change)
-    GenerateOutcomes.agent_and_land_outcomes!.(agents,Ref(land_uses))
+    @time DecisionProblem.manage_land_parcels!.(agents,Ref(land_uses),Ref(disable_land_use_change),Ref(years_until_taxes))
+    GenerateOutcomes.agent_and_land_outcomes!.(agents,Ref(land_uses),Ref(years_until_taxes))
     GenerateOutcomes.catchment_outcomes!.(catchments,Ref(land_uses))
     return agents
 end
