@@ -49,14 +49,14 @@ rule join:
 
 rule main:
     input:
-        data_dir + "{grid_cell}/hectares_with_stuff_final.gpkg",
+        data_dir + "{grid_cell}/hectares_with_data_final.gpkg",
     output:
         output_folder = output_dir + run_id + "/{grid_cell}/complete.txt",
     shell:
         '''
         julia --project=\".\" main.jl \
         --max-parcels {config[maxParcelsPerCell]} \
-        --geodata {data_dir}{wildcards.grid_cell}/hectares_with_stuff_final.gpkg \
+        --geodata {data_dir}{wildcards.grid_cell}/hectares_with_data_final.gpkg \
         --output-dir {output_dir}{run_id}/{wildcards.grid_cell}/ \
         --log-file {output_dir}{run_id}/{wildcards.grid_cell}/error.log \
         --extension-scale {config[extensionScale]} \

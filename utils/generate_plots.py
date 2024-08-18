@@ -139,7 +139,7 @@ data = data.rename(columns={
                             },errors="raise")
 data["GHG Emissions (kg CO2e/ha/yr)"] = data["Methane Emissions (kg CO2e/ha/yr)"] + data["Nitrous Oxide Emissions (kg CO2e/ha/yr)"]
 
-data["Total annual profits ($/yr)"] = data["Profit ANPV ($/ha/yr)"] * data["Area (ha)"]
+
 data["Total Methane Emissions (kg CO2e/yr)"] = data["Methane Emissions (kg CO2e/ha/yr)"] * data["Area (ha)"]
 data["Total Nitrous Oxide Emissions (kg CO2e/yr)"] = data["Nitrous Oxide Emissions (kg CO2e/ha/yr)"] * data["Area (ha)"]
 data["Total Nitrogen loss (kg/yr)"] = data["Nitrogen loss (kg/ha/yr)"] * data["Area (ha)"]
@@ -158,20 +158,20 @@ averages = data.groupby(["Timestep","Land use"]).mean().reset_index()
 averages.to_csv(f'{output_dir}plots/outcomes_average.csv')
 sums.to_csv(f'{output_dir}plots/outcomes_aggregated.csv')
 
-sb.relplot(data=sums,x="Timestep",y="Total annual profits ($/yr)",hue="Land use",kind="line")
+sb.relplot(data=sums,x="Timestep",y="Yearly profit ($)",hue="Land use",kind="line")
 plt.savefig(f'{output_dir}plots/profitability.png')
 plt.close()
 
 aggregates = data.groupby(["Timestep","Land use category"]).sum().reset_index()
 
-for outcome in ["Area (ha)","Total annual profits ($/yr)","Total Methane Emissions (kg CO2e/yr)","Total Nitrous Oxide Emissions (kg CO2e/yr)"]:
+for outcome in ["Area (ha)","Yearly profit ($)","Total Methane Emissions (kg CO2e/yr)","Total Nitrous Oxide Emissions (kg CO2e/yr)"]:
     # aggregates.set_index("Timestep").plot(y=outcome,kind="bar",stacked=True)
     sb.relplot(data=aggregates,x="Timestep",y=outcome,hue="Land use category",kind="line")
     plt.savefig(f'{output_dir}plots/{outcome.replace("/"," per ")} by land use.png')
     plt.close()
 
 even_more_aggregated = aggregates.groupby(["Timestep"]).sum().reset_index()
-for outcome in ["Total annual profits ($/yr)","Total Methane Emissions (kg CO2e/yr)","Total Nitrous Oxide Emissions (kg CO2e/yr)"]:
+for outcome in ["Yearly profit ($)","Total Methane Emissions (kg CO2e/yr)","Total Nitrous Oxide Emissions (kg CO2e/yr)"]:
     sb.relplot(data=even_more_aggregated,x="Timestep",y=outcome,kind="line")
     plt.savefig(f'{output_dir}plots/{outcome.replace("/"," per ")}.png')
     plt.close()
